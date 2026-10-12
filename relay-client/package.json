@@ -1,0 +1,13 @@
+{
+  "name": "hydra-relay-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=20"},
+  "bin": {"relay": "./bin/relay.mjs"},
+  "scripts": {
+    "test": "node --test test/base.test.mjs",
+    "test:acceptance": "node --test test/acceptance/*.test.mjs",
+    "test:all": "node --test test/*.test.mjs test/acceptance/*.test.mjs"
+  }
+}

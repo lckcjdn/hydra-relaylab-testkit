@@ -1,0 +1,23 @@
+{
+  "mode": "baseline",
+  "ranAt": "2026-10-12T02:52:17.865Z",
+  "node": "v24.15.0",
+  "results": [
+    {
+      "project": "relay-api",
+      "exitCode": 0,
+      "pass": 2,
+      "fail": 0,
+      "output": "\n> hydra-relay-api@0.1.0 test\n> node --test test/base.test.mjs\n\n✔ health and CRUD work without dependencies (72.9908ms)\n✔ validation rejects bad input (18.5909ms)\nℹ tests 2\nℹ suites 0\nℹ pass 2\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 221.7791\n\n",
+      "error": null
+    },
+    {
+      "project": "relay-client",
+      "exitCode": 0,
+      "pass": 2,
+      "fail": 0,
+      "output": "\n> hydra-relay-client@0.1.0 test\n> node --test test/base.test.mjs\n\n✔ client help (0.795ms)\n✔ client list prints tickets (3.3092ms)\nℹ tests 2\nℹ suites 0\nℹ pass 2\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 109.91\n\n",
+      "error": null
+    }
+  ]
+}
