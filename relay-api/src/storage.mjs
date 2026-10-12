@@ -32,11 +32,13 @@ export function createStore(path, now = () => new Date().toISOString()) {
     write(data);
     return ticket;
   }
-  function updateStatus(id, { status }) {
+  function updateStatus(id, { status, actor }) {
     if (!['open', 'in_progress', 'closed'].includes(status)) throw new TypeError('invalid status');
     const data = read();
     const ticket = data.tickets.find(t => t.id === id);
     if (!ticket) return null;
+    if (!Array.isArray(ticket.history)) ticket.history = [];
+    ticket.history.push({ from: ticket.status, to: status, actor: actor ?? 'system', at: now() });
     ticket.status = status;
     ticket.updatedAt = now();
     write(data);

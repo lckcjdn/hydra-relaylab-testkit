@@ -1,0 +1,23 @@
+{
+  "mode": "all",
+  "ranAt": "2026-10-12T02:57:03.232Z",
+  "node": "v24.15.0",
+  "results": [
+    {
+      "project": "relay-api",
+      "exitCode": 0,
+      "pass": 7,
+      "fail": 0,
+      "output": "\n> hydra-relay-api@0.1.0 test:all\n> node --test test/*.test.mjs test/acceptance/*.test.mjs\n\n✔ B: auditable status transitions survive store reopen (84.6793ms)\n✔ B: nonexistent ticket has no history endpoint (21.7388ms)\n✔ C: CSV export uses stable columns and safe quoting (112.517ms)\n✔ A: filter status+priority and paginate stably (135.0081ms)\n✔ A: invalid pagination is 400, not silently ignored (20.1475ms)\n✔ health and CRUD work without dependencies (130.543ms)\n✔ validation rejects bad input (24.9527ms)\nℹ tests 7\nℹ suites 0\nℹ pass 7\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 342.9072\n\n",
+      "error": null
+    },
+    {
+      "project": "relay-client",
+      "exitCode": 0,
+      "pass": 4,
+      "fail": 0,
+      "output": "\n> hydra-relay-client@0.1.0 test:all\n> node --test test/*.test.mjs test/acceptance/*.test.mjs\n\n✔ D: export writes the exact API CSV response into --output (11.4989ms)\n✔ D: stats prints counts by ticket status (5.4769ms)\n✔ client help (1.1453ms)\n✔ client list prints tickets (3.0054ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 159.7527\n\n",
+      "error": null
+    }
+  ]
+}

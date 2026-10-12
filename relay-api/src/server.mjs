@@ -16,31 +16,81 @@ async function bodyAsJson(req) {
   try { return JSON.parse(body || '{}'); } catch { throw new TypeError('invalid JSON'); }
 }
 
+// RFC4180-style CSV field escaping (comma/quote/newline trigger quoting).
+function csvCell(value) {
+  const s = value === null || value === undefined ? '' : String(value);
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function parsePagination(url) {
+  const rawLimit = url.searchParams.get('limit');
+  const rawOffset = url.searchParams.get('offset');
+  let limit;
+  let offset;
+  if (rawLimit !== null) {
+    limit = Number(rawLimit);
+    if (!Number.isInteger(limit) || limit < 0) throw new TypeError('invalid limit');
+  }
+  if (rawOffset !== null) {
+    offset = Number(rawOffset);
+    if (!Number.isInteger(offset) || offset < 0) throw new TypeError('invalid offset');
+  }
+  return { limit, offset };
+}
+
 export function makeApp(store) {
   return createServer(async (req, res) => {
     const url = new URL(req.url, 'http://localhost');
     const idMatch = url.pathname.match(/^\/tickets\/(T-\d+)$/);
+    const historyMatch = url.pathname.match(/^\/tickets\/(T-\d+)\/history$/);
     try {
       if (req.method === 'GET' && url.pathname === '/health') {
         return send(res, 200, { ok: true, service: 'relay-api' });
       }
       if (req.method === 'GET' && url.pathname === '/tickets') {
-        // WORKSTREAM A: support status/priority filters, pagination, strict input validation.
-        return send(res, 200, { tickets: store.list() });
+        // WORKSTREAM A: status/priority filters, pagination, strict input validation.
+        const status = url.searchParams.get('status');
+        const priority = url.searchParams.get('priority');
+        const { limit, offset } = parsePagination(url);
+
+        let tickets = store.list(); // stable creation order
+        if (status) tickets = tickets.filter((t) => t.status === status);
+        if (priority) tickets = tickets.filter((t) => t.priority === priority);
+        const total = tickets.length;
+        if (offset !== undefined && limit !== undefined) {
+          tickets = tickets.slice(offset, offset + limit);
+        } else if (offset !== undefined) {
+          tickets = tickets.slice(offset);
+        } else if (limit !== undefined) {
+          tickets = tickets.slice(0, limit);
+        }
+        return send(res, 200, { tickets, total });
       }
       if (req.method === 'POST' && url.pathname === '/tickets') {
         return send(res, 201, store.create(await bodyAsJson(req)));
+      }
+      // WORKSTREAM C: CSV export. Must be routed before the dynamic /tickets/:id route.
+      if (req.method === 'GET' && url.pathname === '/tickets/export.csv') {
+        const header = ['id', 'title', 'priority', 'status', 'createdAt', 'updatedAt'];
+        const rows = store.list().map((t) =>
+          [t.id, t.title, t.priority, t.status, t.createdAt, t.updatedAt].map(csvCell).join(',')
+        );
+        const csv = [header.join(','), ...rows].join('\r\n') + '\r\n';
+        return send(res, 200, csv, 'text/csv; charset=utf-8');
+      }
+      // WORKSTREAM B: durable per-ticket audit history.
+      if (historyMatch && req.method === 'GET') {
+        const ticket = store.get(historyMatch[1]);
+        return ticket ? send(res, 200, { history: ticket.history ?? [] }) : send(res, 404, { error: 'ticket not found' });
       }
       if (idMatch && req.method === 'GET') {
         const ticket = store.get(idMatch[1]);
         return ticket ? send(res, 200, ticket) : send(res, 404, { error: 'ticket not found' });
       }
       if (idMatch && req.method === 'PATCH') {
-        // WORKSTREAM B: durable per-ticket audit history and actor.
         const ticket = store.updateStatus(idMatch[1], await bodyAsJson(req));
         return ticket ? send(res, 200, ticket) : send(res, 404, { error: 'ticket not found' });
       }
-      // WORKSTREAM C: GET /tickets/export.csv, RFC4180-style escaping.
       return send(res, 404, { error: 'route not found' });
     } catch (e) {
       if (e instanceof TypeError) return send(res, 400, { error: e.message });
